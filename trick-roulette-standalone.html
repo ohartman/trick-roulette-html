@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a1a1a">
+  <title>TRICK ROULETTE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Archivo+Black&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --black: #0a0a0a;
+      --dark-gray: #1a1a1a;
+      --gray: #2a2a2a;
+      --light-gray: #444;
+      --white: #f5f5f5;
+      --cream: #fefae0;
+      --red: #ff1744;
+      --yellow: #ffeb3b;
+      --cyan: #00e5ff;
+      --purple: #b388ff;
+      --green: #00ff88;
+    }
+
+    body {
+      font-family: 'Space Mono', monospace;
+      background: var(--black);
+      color: var(--white);
+      overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    .app {
+      min-height: 100vh;
+      position: relative;
+      background: linear-gradient(135deg, var(--black) 0%, var(--dark-gray) 100%);
+    }
+
+    .noise-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      z-index: 1;
+    }
+
+    .header {
+      text-align: center;
+      padding: 2rem 1rem 1rem;
+      position: relative;
+      z-index: 2;
+      border-bottom: 3px solid var(--red);
+      background: linear-gradient(180deg, var(--dark-gray) 0%, transparent 100%);
+    }
+
+    .title {
+      font-family: 'Bebas Neue', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      line-height: 0.85;
+    }
+
+    .title-main {
+      font-size: clamp(3rem, 15vw, 6rem);
+      letter-spacing: 0.1em;
+      color: var(--white);
+      text-shadow: 3px 3px 0 var(--red), 6px 6px 0 var(--black);
+      transform: skewY(-2deg);
+      animation: titlePulse 3s ease-in-out infinite;
+    }
+
+    .title-sub {
+      font-size: clamp(2rem, 10vw, 4rem);
+      letter-spacing: 0.2em;
+      color: var(--yellow);
+      text-shadow: 2px 2px 0 var(--black), 4px 4px 0 var(--red);
+      transform: skewY(2deg);
+    }
+
+    @keyframes titlePulse {
+      0%, 100% { transform: skewY(-2deg) scale(1); }
+      50% { transform: skewY(-2deg) scale(1.02); }
+    }
+
+    .tagline {
+      font-family: 'Space Mono', monospace;
+      font-size: clamp(0.7rem, 2vw, 0.9rem);
+      letter-spacing: 0.3em;
+      color: var(--cyan);
+      margin-top: 1rem;
+      font-weight: 700;
+    }
+
+    .main {
+      position: relative;
+      z-index: 2;
+      padding: 2rem 1rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .trick-display {
+      margin-bottom: 2rem;
+      animation: slideIn 0.5s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .trick-card {
+      background: linear-gradient(135deg, var(--gray) 0%, var(--dark-gray) 100%);
+      border: 4px solid var(--red);
+      border-radius: 0;
+      padding: 2rem;
+      position: relative;
+      box-shadow: 8px 8px 0 var(--black), inset 0 0 0 2px var(--yellow);
+      transform: rotate(-1deg);
+      transition: transform 0.3s ease;
+    }
+
+    .trick-card:hover {
+      transform: rotate(0deg) scale(1.02);
+    }
+
+    .trick-stance {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 0.9rem;
+      letter-spacing: 0.2em;
+      color: var(--yellow);
+      margin-bottom: 0.5rem;
+      text-shadow: 2px 2px 0 var(--black);
+    }
+
+    .trick-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.5rem, 8vw, 4rem);
+      letter-spacing: 0.05em;
+      color: var(--white);
+      text-shadow: 3px 3px 0 var(--red), 6px 6px 0 var(--black);
+      line-height: 1;
+      margin-bottom: 1rem;
+      word-break: break-word;
+    }
+
+    .trick-obstacle {
+      font-family: 'Space Mono', monospace;
+      font-size: 1.1rem;
+      color: var(--cyan);
+      margin-bottom: 1rem;
+      font-weight: 700;
+    }
+
+    .trick-meta {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .trick-difficulty {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 0.8rem;
+      padding: 0.4rem 0.8rem;
+      border: 2px solid currentColor;
+      letter-spacing: 0.1em;
+    }
+
+    .difficulty-beginner { color: var(--green); }
+    .difficulty-intermediate { color: var(--yellow); }
+    .difficulty-advanced { color: var(--cyan); }
+    .difficulty-expert { color: var(--purple); }
+    .difficulty-insane { color: var(--red); }
+
+    .trick-category {
+      font-size: 1.5rem;
+    }
+
+    .generate-btn {
+      width: 100%;
+      background: linear-gradient(135deg, var(--red) 0%, #d50032 100%);
+      border: 4px solid var(--yellow);
+      color: var(--white);
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 0.2em;
+      padding: 1.5rem;
+      cursor: pointer;
+      position: relative;
+      box-shadow: 6px 6px 0 var(--black), inset 0 0 0 2px var(--red);
+      transition: all 0.2s ease;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      transform: rotate(-1deg);
+    }
+
+    .generate-btn:hover:not(:disabled) {
+      transform: rotate(0deg) scale(1.02);
+      box-shadow: 8px 8px 0 var(--black), inset 0 0 0 2px var(--red);
+    }
+
+    .generate-btn:active:not(:disabled) {
+      transform: rotate(0deg) scale(0.98);
+      box-shadow: 4px 4px 0 var(--black), inset 0 0 0 2px var(--red);
+    }
+
+    .generate-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-icon {
+      font-size: 2.5rem;
+      animation: spin 2s linear infinite;
+    }
+
+    .spinning .btn-icon {
+      animation: spin 0.5s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .filters {
+      background: var(--dark-gray);
+      border: 3px solid var(--light-gray);
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 4px 4px 0 var(--black);
+    }
+
+    .filter-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .filter-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .filter-label {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.2em;
+      color: var(--yellow);
+      display: block;
+      margin-bottom: 0.75rem;
+    }
+
+    .filter-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 0.6rem 1rem;
+      background: var(--gray);
+      border: 2px solid var(--light-gray);
+      color: var(--white);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 700;
+    }
+
+    .filter-btn:hover {
+      background: var(--light-gray);
+      border-color: var(--white);
+    }
+
+    .filter-btn.active {
+      background: var(--cyan);
+      border-color: var(--cyan);
+      color: var(--black);
+    }
+
+    .filter-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: var(--white);
+    }
+
+    .filter-toggle input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      accent-color: var(--cyan);
+    }
+
+    .history {
+      background: var(--dark-gray);
+      border: 3px solid var(--light-gray);
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 4px 4px 0 var(--black);
+    }
+
+    .history-title {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 0.9rem;
+      letter-spacing: 0.2em;
+      color: var(--yellow);
+      margin-bottom: 1rem;
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      background: var(--gray);
+      border-left: 3px solid var(--cyan);
+      flex-wrap: wrap;
+      font-size: 0.85rem;
+    }
+
+    .history-number {
+      font-weight: 700;
+      color: var(--light-gray);
+      min-width: 2rem;
+    }
+
+    .history-stance {
+      font-weight: 700;
+      color: var(--yellow);
+      text-transform: uppercase;
+    }
+
+    .history-trick {
+      font-weight: 700;
+      color: var(--white);
+      flex: 1;
+    }
+
+    .history-obstacle {
+      color: var(--cyan);
+      font-style: italic;
+    }
+
+    .history-landed {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      padding: 0.4rem 0.8rem;
+      background: transparent;
+      border: 2px solid var(--light-gray);
+      color: var(--light-gray);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    .history-landed:hover {
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    .history-landed.active {
+      background: var(--green);
+      border-color: var(--green);
+      color: var(--black);
+    }
+
+    .clear-history-btn {
+      width: 100%;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.8rem;
+      padding: 0.75rem;
+      background: transparent;
+      border: 2px solid var(--red);
+      color: var(--red);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+    }
+
+    .clear-history-btn:hover {
+      background: var(--red);
+      color: var(--white);
+    }
+
+    .footer {
+      text-align: center;
+      padding: 2rem 1rem;
+      border-top: 3px solid var(--red);
+      position: relative;
+      z-index: 2;
+      font-size: 0.8rem;
+      color: var(--light-gray);
+      background: linear-gradient(0deg, var(--dark-gray) 0%, transparent 100%);
+    }
+
+    .footer p {
+      margin-bottom: 0.5rem;
+    }
+
+    .footer-count {
+      color: var(--cyan);
+      font-weight: 700;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 480px) {
+      .header {
+        padding: 1.5rem 1rem 1rem;
+      }
+      
+      .main {
+        padding: 1.5rem 1rem;
+      }
+      
+      .trick-card {
+        padding: 1.5rem;
+      }
+      
+      .filters,
+      .history {
+        padding: 1rem;
+      }
+      
+      .filter-btn {
+        font-size: 0.65rem;
+        padding: 0.5rem 0.8rem;
+      }
+    }
+
+    button {
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <div class="noise-overlay"></div>
+    
+    <header class="header">
+      <h1 class="title">
+        <span class="title-main">TRICK</span>
+        <span class="title-sub">ROULETTE</span>
+      </h1>
+      <p class="tagline">SPIN THE WHEEL. LAND THE TRICK.</p>
+    </header>
+
+    <main class="main">
+      <div class="trick-display" id="trickDisplay">
+        <div class="trick-card">
+          <div class="trick-stance" id="trickStance"></div>
+          <div class="trick-name" id="trickName">Click SPIN IT</div>
+          <div class="trick-obstacle" id="trickObstacle"></div>
+          <div class="trick-meta">
+            <span class="trick-difficulty" id="trickDifficulty"></span>
+            <span class="trick-category" id="trickCategory"></span>
+          </div>
+        </div>
+      </div>
+
+      <button class="generate-btn" id="generateBtn" onclick="generateTrick()">
+        <span class="btn-text">SPIN IT</span>
+        <span class="btn-icon">🎲</span>
+      </button>
+
+      <div class="filters">
+        <div class="filter-group">
+          <label class="filter-label">DIFFICULTY</label>
+          <div class="filter-buttons" id="difficultyFilters"></div>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">CATEGORY</label>
+          <div class="filter-buttons" id="categoryFilters"></div>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-toggle">
+            <input type="checkbox" id="stanceToggle" checked>
+            <span>Include Stance Variations (Switch/Nollie/Fakie)</span>
+          </label>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-toggle">
+            <input type="checkbox" id="obstacleToggle" checked>
+            <span>Add Random Obstacles</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="history hidden" id="history">
+        <h3 class="history-title">SESSION HISTORY</h3>
+        <div class="history-list" id="historyList"></div>
+        <button class="clear-history-btn" onclick="clearHistory()">CLEAR HISTORY</button>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <p>Built for skaters by skaters 🛹</p>
+      <p class="footer-count" id="trickCount"></p>
+    </footer>
+  </div>
+
+  <script>
+    // Trick database
+    const tricks = [
+      // BEGINNER
+      { name: 'Ollie', category: 'misc', difficulty: 'beginner', stanceVariants: true },
+      { name: 'Manual', category: 'misc', difficulty: 'beginner' },
+      { name: 'Nose Manual', category: 'misc', difficulty: 'beginner' },
+      { name: 'Kickturn', category: 'misc', difficulty: 'beginner' },
+      { name: 'Tic-Tac', category: 'misc', difficulty: 'beginner' },
+      { name: 'Powerslide', category: 'misc', difficulty: 'beginner' },
+      { name: 'Shuvit', category: 'flip', difficulty: 'beginner', stanceVariants: true },
+      { name: 'Pop Shuvit', category: 'flip', difficulty: 'beginner', stanceVariants: true },
+      { name: 'Hippie Jump', category: 'misc', difficulty: 'beginner' },
+      { name: 'Boneless', category: 'ramp', difficulty: 'beginner' },
+      { name: 'Caveman', category: 'misc', difficulty: 'beginner' },
+      { name: 'Roll In', category: 'misc', difficulty: 'beginner' },
+
+      // INTERMEDIATE
+      { name: 'Kickflip', category: 'flip', difficulty: 'intermediate', stanceVariants: true },
+      { name: 'Heelflip', category: 'flip', difficulty: 'intermediate', stanceVariants: true },
+      { name: 'Frontside 180', category: 'grab', difficulty: 'intermediate', stanceVariants: true },
+      { name: 'Backside 180', category: 'grab', difficulty: 'intermediate', stanceVariants: true },
+      { name: '50-50 Grind', category: 'grind', difficulty: 'intermediate' },
+      { name: 'Boardslide', category: 'grind', difficulty: 'intermediate' },
+      { name: '5-0 Grind', category: 'grind', difficulty: 'intermediate' },
+      { name: 'Nosegrind', category: 'grind', difficulty: 'intermediate' },
+      { name: 'Rock to Fakie', category: 'ramp', difficulty: 'intermediate' },
+      { name: 'Axle Stall', category: 'ramp', difficulty: 'intermediate' },
+      { name: 'Nose Stall', category: 'ramp', difficulty: 'intermediate' },
+      { name: 'Tailslide', category: 'grind', difficulty: 'intermediate' },
+      { name: 'Noseslide', category: 'grind', difficulty: 'intermediate' },
+      { name: 'Indy Grab', category: 'grab', difficulty: 'intermediate' },
+      { name: 'Ollie North', category: 'flip', difficulty: 'intermediate' },
+      { name: 'Ollie South', category: 'flip', difficulty: 'intermediate' },
+      { name: 'One Foot Manual', category: 'misc', difficulty: 'intermediate' },
+      { name: 'Frontside Boardslide', category: 'grind', difficulty: 'intermediate' },
+      { name: 'Firecracker', category: 'misc', difficulty: 'intermediate' },
+      { name: 'Body Varial', category: 'misc', difficulty: 'intermediate' },
+      { name: 'Acid Drop', category: 'misc', difficulty: 'intermediate' },
+      { name: 'Bean Plant', category: 'ramp', difficulty: 'intermediate' },
+      { name: 'Fastplant', category: 'ramp', difficulty: 'intermediate' },
+      { name: 'Tail Stall', category: 'ramp', difficulty: 'intermediate' },
+      { name: 'Pivot Fakie', category: 'ramp', difficulty: 'intermediate' },
+      { name: 'Stalefish Grab', category: 'grab', difficulty: 'intermediate' },
+      { name: 'Nose Grab', category: 'grab', difficulty: 'intermediate' },
+      { name: 'Tail Grab', category: 'grab', difficulty: 'intermediate' },
+      { name: 'Crail Grab', category: 'grab', difficulty: 'intermediate' },
+      { name: 'Melon Grab', category: 'grab', difficulty: 'intermediate' },
+      { name: 'Hang Ten', category: 'misc', difficulty: 'intermediate' },
+
+      // ADVANCED
+      { name: 'Varial Kickflip', category: 'flip', difficulty: 'advanced', stanceVariants: true },
+      { name: 'Varial Heelflip', category: 'flip', difficulty: 'advanced', stanceVariants: true },
+      { name: '360 Flip (Tre Flip)', category: 'flip', difficulty: 'advanced', stanceVariants: true },
+      { name: 'Hardflip', category: 'flip', difficulty: 'advanced', stanceVariants: true },
+      { name: 'Inward Heelflip', category: 'flip', difficulty: 'advanced', stanceVariants: true },
+      { name: 'Impossible', category: 'flip', difficulty: 'advanced' },
+      { name: 'Frontside Flip', category: 'flip', difficulty: 'advanced', stanceVariants: true },
+      { name: 'Backside Flip', category: 'flip', difficulty: 'advanced', stanceVariants: true },
+      { name: 'Frontside 360', category: 'grab', difficulty: 'advanced', stanceVariants: true },
+      { name: 'Backside 360', category: 'grab', difficulty: 'advanced', stanceVariants: true },
+      { name: 'Crooked Grind', category: 'grind', difficulty: 'advanced' },
+      { name: 'Smith Grind', category: 'grind', difficulty: 'advanced' },
+      { name: 'Feeble Grind', category: 'grind', difficulty: 'advanced' },
+      { name: 'Bluntslide', category: 'grind', difficulty: 'advanced' },
+      { name: 'Noseblunt Slide', category: 'grind', difficulty: 'advanced' },
+      { name: 'Lipslide', category: 'grind', difficulty: 'advanced' },
+      { name: 'Halfcab', category: 'flip', difficulty: 'advanced' },
+      { name: 'Caballerial', category: 'grab', difficulty: 'advanced' },
+      { name: 'Rock and Roll', category: 'ramp', difficulty: 'advanced' },
+      { name: 'Disaster', category: 'ramp', difficulty: 'advanced' },
+      { name: 'Blunt', category: 'ramp', difficulty: 'advanced' },
+      { name: 'Noseblunt', category: 'ramp', difficulty: 'advanced' },
+      { name: 'Bigspin', category: 'flip', difficulty: 'advanced', stanceVariants: true },
+      { name: '360 Shuvit', category: 'flip', difficulty: 'advanced', stanceVariants: true },
+      { name: 'No Comply', category: 'flip', difficulty: 'advanced' },
+      { name: 'Method Air', category: 'grab', difficulty: 'advanced' },
+      { name: 'Mute Air', category: 'grab', difficulty: 'advanced' },
+      { name: 'Backside Lipslide', category: 'grind', difficulty: 'advanced' },
+      { name: 'Sex Change', category: 'flip', difficulty: 'advanced' },
+      { name: 'Pressure Flip', category: 'flip', difficulty: 'advanced' },
+      { name: 'Fingerflip', category: 'flip', difficulty: 'advanced' },
+      { name: 'Nose Pick', category: 'ramp', difficulty: 'advanced' },
+      { name: 'Lien Air', category: 'grab', difficulty: 'advanced' },
+      { name: 'Benihana', category: 'grab', difficulty: 'advanced' },
+      { name: 'Rocket Air', category: 'grab', difficulty: 'advanced' },
+      { name: 'One Wheel Manual', category: 'misc', difficulty: 'advanced' },
+      { name: 'Alley Oop', category: 'misc', difficulty: 'advanced' },
+      { name: 'Flamingo', category: 'misc', difficulty: 'advanced' },
+
+      // EXPERT
+      { name: 'Laser Flip', category: 'flip', difficulty: 'expert', stanceVariants: true },
+      { name: 'Big Heelflip', category: 'flip', difficulty: 'expert', stanceVariants: true },
+      { name: 'Bigflip', category: 'flip', difficulty: 'expert', stanceVariants: true },
+      { name: 'Biggerflip', category: 'flip', difficulty: 'expert', stanceVariants: true },
+      { name: '540 Flip', category: 'flip', difficulty: 'expert', stanceVariants: true },
+      { name: '720 Flip', category: 'flip', difficulty: 'expert', stanceVariants: true },
+      { name: 'Nightmare Flip', category: 'flip', difficulty: 'expert', stanceVariants: true },
+      { name: 'Gazelle Flip', category: 'flip', difficulty: 'expert', stanceVariants: true },
+      { name: 'Ghetto Bird', category: 'flip', difficulty: 'expert' },
+      { name: 'Nerd Flip', category: 'flip', difficulty: 'expert' },
+      { name: 'Alpha Flip', category: 'flip', difficulty: 'expert' },
+      { name: 'Casper Flip', category: 'flip', difficulty: 'expert' },
+      { name: 'Hospital Flip', category: 'flip', difficulty: 'expert' },
+      { name: 'Plasma Spin', category: 'flip', difficulty: 'expert' },
+      { name: '540', category: 'grab', difficulty: 'expert' },
+      { name: '720', category: 'grab', difficulty: 'expert' },
+      { name: 'Darkslide', category: 'grind', difficulty: 'expert' },
+      { name: 'Overcrook Grind', category: 'grind', difficulty: 'expert' },
+      { name: 'Salad Grind', category: 'grind', difficulty: 'expert' },
+      { name: 'Willy Grind', category: 'grind', difficulty: 'expert' },
+      { name: 'Hurricane', category: 'grind', difficulty: 'expert' },
+      { name: 'McTwist', category: 'grab', difficulty: 'expert' },
+      { name: 'Christ Air', category: 'grab', difficulty: 'expert' },
+      { name: 'Airwalk', category: 'grab', difficulty: 'expert' },
+      { name: 'Japan Air', category: 'grab', difficulty: 'expert' },
+
+      // INSANE
+      { name: '900', category: 'grab', difficulty: 'insane' },
+      { name: 'Double Kickflip', category: 'flip', difficulty: 'insane', stanceVariants: true },
+      { name: 'Triple Kickflip', category: 'flip', difficulty: 'insane', stanceVariants: true },
+      { name: 'Double Heelflip', category: 'flip', difficulty: 'insane', stanceVariants: true },
+      { name: 'Triple Heelflip', category: 'flip', difficulty: 'insane', stanceVariants: true },
+      { name: 'Frontside Heelflip', category: 'flip', difficulty: 'insane', stanceVariants: true },
+      { name: 'Backside Heelflip', category: 'flip', difficulty: 'insane', stanceVariants: true },
+      { name: 'Kiwi Flip', category: 'flip', difficulty: 'insane' },
+      { name: 'Illusion Flip', category: 'flip', difficulty: 'insane' },
+      { name: 'Jesus Flip', category: 'flip', difficulty: 'insane' },
+      { name: 'Handstand Flip', category: 'flip', difficulty: 'insane' },
+      { name: 'Primo Grind', category: 'grind', difficulty: 'insane' },
+      { name: 'Casperslide', category: 'grind', difficulty: 'insane' },
+      { name: 'Backflip', category: 'grab', difficulty: 'insane' },
+      { name: 'Madonna', category: 'grab', difficulty: 'insane' },
+      { name: 'Coffin', category: 'misc', difficulty: 'insane' },
+      { name: 'Pogo', category: 'misc', difficulty: 'insane' },
+      { name: 'Primo', category: 'misc', difficulty: 'insane' },
+      { name: 'Daffy', category: 'misc', difficulty: 'insane' },
+    ];
+
+    const obstacles = [
+      'flat ground',
+      'down a 3-stair',
+      'down a 5-stair',
+      'down a 7-stair',
+      'down a 10-stair',
+      'over a hip',
+      'on a ledge',
+      'on a rail',
+      'on a hubba',
+      'on manual pad',
+      'in a bank',
+      'in transition',
+      'on vert',
+      'down a gap',
+      'over a pyramid',
+      'fakie',
+    ];
+
+    const difficulties = ['beginner', 'intermediate', 'advanced', 'expert', 'insane'];
+    const categories = [
+      { value: 'flip', label: 'FLIP' },
+      { value: 'grind', label: 'GRIND' },
+      { value: 'grab', label: 'GRAB' },
+      { value: 'ramp', label: 'RAMP' },
+      { value: 'misc', label: 'MISC' },
+    ];
+
+    let selectedDifficulties = [...difficulties];
+    let selectedCategories = categories.map(c => c.value);
+    let history = [];
+    let currentTrick = null;
+
+    function getCategoryIcon(category) {
+      const icons = {
+        flip: '↻',
+        grind: '═',
+        grab: '✋',
+        ramp: '⌢',
+        misc: '★',
+      };
+      return icons[category];
+    }
+
+    function getFilteredTricks() {
+      return tricks.filter(trick =>
+        selectedDifficulties.includes(trick.difficulty) &&
+        selectedCategories.includes(trick.category)
+      );
+    }
+
+    function generateTrick() {
+      const filteredTricks = getFilteredTricks();
+      if (filteredTricks.length === 0) return;
+
+      const app = document.getElementById('app');
+      const btn = document.getElementById('generateBtn');
+      app.classList.add('spinning');
+      btn.disabled = true;
+
+      setTimeout(() => {
+        const randomIndex = Math.floor(Math.random() * filteredTricks.length);
+        const trick = filteredTricks[randomIndex];
+
+        currentTrick = trick;
+
+        // Stance
+        let stance = 'regular';
+        const includeStance = document.getElementById('stanceToggle').checked;
+        if (includeStance && trick.stanceVariants) {
+          const stances = ['regular', 'switch', 'nollie', 'fakie'];
+          stance = stances[Math.floor(Math.random() * stances.length)];
+        }
+
+        // Obstacle
+        let obstacle = '';
+        const includeObstacle = document.getElementById('obstacleToggle').checked;
+        if (includeObstacle) {
+          obstacle = obstacles[Math.floor(Math.random() * obstacles.length)];
+        }
+
+        // Update display
+        document.getElementById('trickName').textContent = trick.name;
+        document.getElementById('trickDifficulty').textContent = trick.difficulty.toUpperCase();
+        document.getElementById('trickDifficulty').className = `trick-difficulty difficulty-${trick.difficulty}`;
+        document.getElementById('trickCategory').textContent = getCategoryIcon(trick.category);
+
+        if (stance !== 'regular') {
+          document.getElementById('trickStance').textContent = stance.toUpperCase();
+          document.getElementById('trickStance').style.display = 'block';
+        } else {
+          document.getElementById('trickStance').style.display = 'none';
+        }
+
+        if (obstacle) {
+          document.getElementById('trickObstacle').textContent = obstacle;
+          document.getElementById('trickObstacle').style.display = 'block';
+        } else {
+          document.getElementById('trickObstacle').style.display = 'none';
+        }
+
+        // Add to history
+        history.unshift({
+          trick,
+          stance: stance !== 'regular' ? stance : undefined,
+          obstacle: obstacle || undefined,
+          landed: false,
+        });
+
+        if (history.length > 20) {
+          history = history.slice(0, 20);
+        }
+
+        updateHistory();
+
+        app.classList.remove('spinning');
+        btn.disabled = false;
+      }, 800);
+    }
+
+    function updateHistory() {
+      const historyEl = document.getElementById('history');
+      const historyList = document.getElementById('historyList');
+
+      if (history.length === 0) {
+        historyEl.classList.add('hidden');
+        return;
+      }
+
+      historyEl.classList.remove('hidden');
+      historyList.innerHTML = history.map((item, index) => `
+        <div class="history-item">
+          <span class="history-number">${history.length - index}.</span>
+          ${item.stance ? `<span class="history-stance">${item.stance}</span>` : ''}
+          <span class="history-trick">${item.trick.name}</span>
+          ${item.obstacle ? `<span class="history-obstacle">${item.obstacle}</span>` : ''}
+          <button class="history-landed ${item.landed ? 'active' : ''}" onclick="toggleLanded(${index})">
+            ${item.landed ? '✓ LANDED' : 'LAND IT?'}
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function toggleLanded(index) {
+      history[index].landed = !history[index].landed;
+      updateHistory();
+    }
+
+    function clearHistory() {
+      if (confirm('Clear your session history?')) {
+        history = [];
+        updateHistory();
+      }
+    }
+
+    function setupFilters() {
+      // Difficulty filters
+      const difficultyFilters = document.getElementById('difficultyFilters');
+      difficultyFilters.innerHTML = difficulties.map(diff => `
+        <button class="filter-btn active" data-difficulty="${diff}" onclick="toggleDifficulty('${diff}')">
+          ${diff}
+        </button>
+      `).join('');
+
+      // Category filters
+      const categoryFilters = document.getElementById('categoryFilters');
+      categoryFilters.innerHTML = categories.map(cat => `
+        <button class="filter-btn active" data-category="${cat.value}" onclick="toggleCategory('${cat.value}')">
+          ${cat.label}
+        </button>
+      `).join('');
+    }
+
+    function toggleDifficulty(diff) {
+      const index = selectedDifficulties.indexOf(diff);
+      if (index > -1) {
+        if (selectedDifficulties.length > 1) {
+          selectedDifficulties.splice(index, 1);
+        }
+      } else {
+        selectedDifficulties.push(diff);
+      }
+      updateFilterButtons();
+    }
+
+    function toggleCategory(cat) {
+      const index = selectedCategories.indexOf(cat);
+      if (index > -1) {
+        if (selectedCategories.length > 1) {
+          selectedCategories.splice(index, 1);
+        }
+      } else {
+        selectedCategories.push(cat);
+      }
+      updateFilterButtons();
+    }
+
+    function updateFilterButtons() {
+      difficulties.forEach(diff => {
+        const btn = document.querySelector(`[data-difficulty="${diff}"]`);
+        if (selectedDifficulties.includes(diff)) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+
+      categories.forEach(cat => {
+        const btn = document.querySelector(`[data-category="${cat.value}"]`);
+        if (selectedCategories.includes(cat.value)) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+    }
+
+    // Initialize
+    document.getElementById('trickCount').textContent = `${tricks.length} tricks loaded`;
+    setupFilters();
+    generateTrick();
+  </script>
+</body>
+</html>
